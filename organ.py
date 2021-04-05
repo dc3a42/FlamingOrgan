@@ -1,7 +1,5 @@
 from smbus2 import SMBus
-#from smbus import SMBus
 import sys, time
-#import pynput
 import getch
 import mido
 
@@ -13,7 +11,7 @@ BoardCount = 3
 BoardStartNote = 60
 #BoardEndNote = BoardStartNote + (BoardCount * 8) - 1 # 8 relays/board
 BoardEndNote = 71
-AllNote = 72
+AllNote = 72 # turn on all (or at least lots) of the notes
 
 class MonitorPort(mido.ports.BaseOutput):
     ''' MIDI output port that simply prints the MIDI messages sent
@@ -95,8 +93,6 @@ class OrganPort(mido.ports.BaseOutput):
 #                           note=60,
 #                           velocity=64)
 
-
-import getch
 def TtyInput():
     ''' Generator for MIDI messages based on characters from stdin.
     Convert digits 1-8 to MIDI messages toggling notes.
