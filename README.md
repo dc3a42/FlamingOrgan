@@ -10,3 +10,5 @@ Setup on a Raspberry Pi; I used a Pi 4
 5. trust *MAC-adress*
 6. pair *MAC-adress*
 7. connect *MAC-adress*
+
+There's probably more -- let me know what I missed!  (Like Python3 support?  mido?)
