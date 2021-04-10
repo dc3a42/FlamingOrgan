@@ -8,9 +8,9 @@ import mido
 # ON = 0, OFF = 1; base address 0x20
 Board0Port = 0x20
 BoardCount = 3
-BoardStartNote = 60
+BoardStartNote = 56
 #BoardEndNote = BoardStartNote + (BoardCount * 8) - 1 # 8 relays/board
-BoardEndNote = 71
+BoardEndNote = 67
 AllNote = 72 # turn on all (or at least lots) of the notes
 
 class MonitorPort(mido.ports.BaseOutput):
@@ -28,8 +28,7 @@ class OrganPort(mido.ports.BaseOutput):
     def _open(self, **kwargs): 
         # set up SMBus (I2C)
         busid = 1
-        print('Initializing board at SMBus ' + str(busid)
-              + ' Port ' + str(Board0Port))
+        print('Initializing boards at SMBus ' + str(busid))
         self.bus = SMBus(bus=busid)
         self.reset()
         print('Sending output to SMBus ' + str(busid))
@@ -42,7 +41,7 @@ class OrganPort(mido.ports.BaseOutput):
     def _send(self, msg):
         if msg.type is 'note_on' or msg.type is 'note_off':
            if msg.note >= BoardStartNote and msg.note <= BoardEndNote:
-                print('Executing MIDI msg: ' + str(msg))
+                print(str(msg))
                 board = int((msg.note - BoardStartNote) / 8)
                 relay = (msg.note - BoardStartNote) % 8
                 self.portstate[board] = self.portstate[board] ^ (1 << relay)
@@ -64,18 +63,26 @@ class OrganPort(mido.ports.BaseOutput):
     def reset(self):
         self.portstate = [0x0] * BoardCount
         for i in range(BoardCount):
+            print('Resetting board ' + str(i))
             self.update(i)
         
     def update(self, board):
         bdport = Board0Port + board
-        self.bus.write_byte_data(bdport, 0, 0)
-        self.bus.write_byte_data(bdport, 0x0a, self.portstate[board])
-        status0 = self.bus.read_byte_data(bdport, 0x0a)
-        status1 = self.bus.read_byte_data(bdport, 0x0a)
+        status1 = None
+        try:
+            self.bus.write_byte_data(bdport, 0, 0)
+            self.bus.write_byte_data(bdport, 0x0a, self.portstate[board])
+            status0 = self.bus.read_byte_data(bdport, 0x0a)
+            status1 = self.bus.read_byte_data(bdport, 0x0a)
+        except IOError as err:
+            print('Errno ' + str(err.errno) + ': ' + err.strerror)
+            print('IOError on Relay I2C Bus -- is it plugged in?')
+            sys.exit(1)
         if status1 != self.portstate[board]:
             print("WARNING: tried to set state {0:x} but read state {1:x}".format(self.portstate[board], status1))
         else:
-            print('Set board {} relay state to {:x}'.format(str(board), status1))
+            #print('Set board {} relay state to {:x}'.format(str(board), status1))
+            pass
             
 
 
@@ -175,7 +182,8 @@ print('Opening MIDI input "' + kbdPort + '"')
 play(mido.open_input(kbdPort), OrganPort())
 
 # Playing MidiFile to organ:
-#play(mido.MidiFile('Music/Entry_of_the_gladiators.mid'), OrganPort())
-#play(mido.MidiFile('THE EAGLES.Hotel California K.mid'), OrganPort())
-#play(mido.MidiFile('Music/Toccata-and-Fugue-Dm.mid'), OrganPort())
-#play(mido.MidiFile('Music/Smoke-On-The-Water-2.mid'), OrganPort())
+#Musicpath = '../Music'
+#play(mido.MidiFile(Musicpath + '/Entry_of_the_gladiators.mid'), OrganPort())
+#play(mido.MidiFile(Musicpath + '/Hotel_California.mid'), OrganPort())
+#play(mido.MidiFile(Musicpath + '/Toccata-and-Fugue-Dm.mid'), OrganPort())
+#play(mido.MidiFile(Musicpath + '/Smoke-On-The-Water-2.mid'), OrganPort())
