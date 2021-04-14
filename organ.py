@@ -149,7 +149,8 @@ def play(inport, outport):
 # Use first one of these that matches (startswith) an available port
 kbdPortList = [ 'USB Uno MIDI Interface MIDI 1', # USB/MIDI adapter
                 'Akai LPK25 Wireless:Akai LPK25 Wireless Bluetooth',
-                'Akai LPK25 Wireless:Akai LPK25 Wireless MIDI 1'
+                'Akai LPK25 Wireless:Akai LPK25 Wireless MIDI 1',
+                'rtpmidi:rtpmidi 128:0' # Mclaren RTP-MIDI service
              ]
 kbdPort = None
 
