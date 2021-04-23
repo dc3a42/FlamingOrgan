@@ -11,4 +11,6 @@ Setup on a Raspberry Pi; I used a Pi 4
 6. pair *MAC-adress*
 7. connect *MAC-adress*
 
+For a BT keyboard that won't connect, see https://www.raspberrypi.org/forums/viewtopic.php?p=947185#p947185
+
 There's probably more -- let me know what I missed!  (Like Python3 support?  mido?)
