@@ -10,8 +10,8 @@ Board0Port = 0x20
 BoardCount = 3
 BoardStartNote = 56
 #BoardEndNote = BoardStartNote + (BoardCount * 8) - 1 # 8 relays/board
-BoardEndNote = 67
-AllNote = 72 # turn on all (or at least lots) of the notes
+BoardEndNote = BoardStartNote + 11 # Inclusive
+AllNote = 99 # turn on all (or at least lots) of the notes
 
 class MonitorPort(mido.ports.BaseOutput):
     ''' MIDI output port that simply prints the MIDI messages sent
@@ -37,14 +37,22 @@ class OrganPort(mido.ports.BaseOutput):
         # cleanup
         self.reset()
         self.bus.close()
+
+    def update_note(self, msg):
+        board = int((msg.note - BoardStartNote) / 8)
+        relay = (msg.note - BoardStartNote) % 8
+        # note_on with velocity = 0 means note_off
+        if msg.type is 'note_off' or (msg.type is 'note_on' and msg.velocity is 0):
+            self.portstate[board] = self.portstate[board] & (~(1 << relay))
+        else:
+            self.portstate[board] = self.portstate[board] | (1 << relay)
         
     def _send(self, msg):
         if msg.type is 'note_on' or msg.type is 'note_off':
            if msg.note >= BoardStartNote and msg.note <= BoardEndNote:
                 print(str(msg))
                 board = int((msg.note - BoardStartNote) / 8)
-                relay = (msg.note - BoardStartNote) % 8
-                self.portstate[board] = self.portstate[board] ^ (1 << relay)
+                self.update_note(msg)
                 self.update(board)
            elif msg.note == AllNote:
                print('Playing All Notes')
@@ -57,8 +65,8 @@ class OrganPort(mido.ports.BaseOutput):
                self.update(board)
            else:
                 print('Ignoring MIDI note out of range: ' + str(msg))
-        else:
-            print('Ignoring MIDI message not note: ' + str(msg))
+#        else:
+#            print('Ignoring MIDI message not note: ' + str(msg))
 
     def reset(self):
         self.portstate = [0x0] * BoardCount
@@ -150,7 +158,7 @@ def play(inport, outport):
 kbdPortList = [ 'USB Uno MIDI Interface MIDI 1', # USB/MIDI adapter
                 'Akai LPK25 Wireless:Akai LPK25 Wireless Bluetooth',
                 'Akai LPK25 Wireless:Akai LPK25 Wireless MIDI 1',
-                'rtpmidi:rtpmidi 128:0' # Mclaren RTP-MIDI service
+                'rtpmidi:rtpmidi' # Mclaren RTP-MIDI service
              ]
 kbdPort = None
 
@@ -172,7 +180,9 @@ if not kbdPort:
     print('Giving up')
     print('If Akai LPK25 Wireless is not shown (i.e. not paired):')
     print('Is it turned on?  Is it paired?')
-    print('MAC: Device A4:DA:32:36:7E:A9 (public)')
+    print('LPK25 MAC: Device A4:DA:32:36:7E:A9 (public)')
+    print('Kbd MAC: 78:05:12:14:15:7F')
+    print('Logitech Pebble mouse MAC: D3:7D:41:27:BD:A9')
     print('Run bluetoothctl')
     print('[bluetooth]# connect A4:DA:32:36:7E:A9')
     print('Other useful commands: info, pair, trust <MAC>')
