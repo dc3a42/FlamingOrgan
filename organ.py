@@ -8,9 +8,12 @@ import mido
 # ON = 0, OFF = 1; base address 0x20
 Board0Port = 0x20
 BoardCount = 3
-BoardStartNote = 56
-#BoardEndNote = BoardStartNote + (BoardCount * 8) - 1 # 8 relays/board
-BoardEndNote = BoardStartNote + 11 # Inclusive
+#BoardStartNote = 48 # left end of kbd
+BoardStartNote = 48
+# Use all relays on boards
+BoardEndNote = BoardStartNote + (BoardCount * 8) - 1 # 8 relays/board
+#Or use only 1 octave's relays
+#BoardEndNote = BoardStartNote + 11 # Inclusive
 AllNote = 99 # turn on all (or at least lots) of the notes
 
 class MonitorPort(mido.ports.BaseOutput):
